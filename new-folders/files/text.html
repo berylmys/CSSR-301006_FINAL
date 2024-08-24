@@ -1,0 +1,291 @@
+<!-- adapted from https://threejs.org/examples/webgl_loader_stl and https://sbcode.net/threejs/loaders-stl/ -->
+
+<!--
+a. copy and save all of this, into your own .html, eg. fun.html
+b. create an img/ folder, place 6 cubemap photos (eg of your room!)
+c. edit fun.html, remove 'https://bytes.usc.edu/~saty/tools/xem/x/THREE-STLLoader/' 6 times [so you only have img/...]
+d. create models/your-model.stl
+e. edit fun.html, remove https://bytes.usc.edu/~saty/... in the loader.load() call, instead put in models/your-model.stl
+f. load fun.html into your browser - ta-da!!
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>STL loader</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <script src="https://unpkg.com/three@0.146.0/build/three.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/three@0.146.0/examples/js/loaders/STLLoader.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/three@0.146.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <script>
+        const scene = new THREE.Scene();
+        scene.add(new THREE.AxesHelper(2)); // cmt this out if you like...
+
+        scene.background = new THREE.Color(0xD9D9D9); // set background color
+        //create ambient light with red color
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        //create directional light with blue color
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        scene.add(directionalLight);
+
+        //add a background picture
+        const loader2 = new THREE.TextureLoader();
+        loader2.load('./bg02.jpg', function (texture) {
+            scene.background = texture;
+        });
+
+        //add a light from bottom to top
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100); 
+        pointLight.position.set(0, -10, 0);
+        scene.add(pointLight);
+
+        //add a light from top to bottom
+        const pointLight2 = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight2.position.set(5, 10, 5);
+        scene.add(pointLight2);
+
+        
+
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            10000
+        );
+        camera.position.z = 5;
+        //camera.position.set(0, -10, 0) ;
+
+        //add camera light
+        let light = new THREE.PointLight();
+        camera.add(light);
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        const envTexture = new THREE.CubeTextureLoader().load([
+            "./bg02.jpg",
+            "./bg02.jpg",
+            "./bg02.jpg",
+            "./bg02.jpg",
+            "./bg02.jpg",
+            "./bg02.jpg",
+        ]);
+        envTexture.mapping = THREE.CubeReflectionMapping;
+
+        const woodTexture = loader2.load('./wood01.jpg', function (texture) {
+        });
+
+        let woodMaterial;
+        woodMaterial = new THREE.MeshPhysicalMaterial({
+            map: woodTexture,
+            envMap: envTexture,
+            color: 0x8B4513,
+            metalness: 0.0,
+            roughness: 0.8,
+            opacity: 1.0,
+            transparent: false,
+            transmission: 0.0,
+            clearcoat: 0.05,
+            clearcoatRoughness: 0.8,
+        });
+        let material1 = new THREE.MeshPhysicalMaterial({
+            color: 0x000000,
+            envMap: envTexture,
+            metalness: 0.1,
+            roughness: 25,
+            opacity: 1.0,
+            transparent: true,
+            transmission: 0.99,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.25,
+        });
+
+        let material3 = new THREE.MeshPhysicalMaterial({
+            color: 0xD9D9D9,
+            envMap: envTexture,
+            metalness: 0.25,
+            roughness: 0.1,
+            opacity: 1.0,
+            transparent: true,
+            transmission: 0.99,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.25,
+        });
+
+        const loader = new THREE.STLLoader();
+        loader.load(
+            "./guitar head and neck.stl",
+            function (geometry) {
+                const mesh1 = new THREE.Mesh(geometry, woodMaterial);
+                mesh1.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh1);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+
+        loader.load(
+            "./face board.stl",
+            function (geometry) {
+                const mesh2 = new THREE.Mesh(geometry, woodMaterial);
+                mesh2.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh2);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+        loader.load(
+            "./circle.stl",
+            function (geometry) {
+                const mesh2 = new THREE.Mesh(geometry, material3);
+                mesh2.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh2);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+
+        loader.load(
+            "./handgrip.stl",
+            function (geometry) {
+                const mesh2 = new THREE.Mesh(geometry, material1);
+                mesh2.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh2);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+
+        loader.load(
+            "./string bottom.stl",
+            function (geometry) {
+                const mesh2 = new THREE.Mesh(geometry, material1);
+                mesh2.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh2);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+
+        loader.load(
+            "./dam board.stl",
+            function (geometry) {
+                const mesh2 = new THREE.Mesh(geometry, material1);
+                mesh2.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh2);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+
+        loader.load(
+            "./strings.stl",
+            function (geometry) {
+                const mesh2 = new THREE.Mesh(geometry, material3);
+                mesh2.scale.set(0.02, 0.02, 0.02);
+                scene.add(mesh2);
+            },
+            (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+            },
+            (error) => {
+                console.log(error);
+            }
+        );
+        // for fun, above, change colored.stl to CharlotteValve.stl,
+        // and also change
+        // *4 below, twice, to *120, and do globe.stl, with *10 :)
+
+        window.addEventListener("resize", onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            render();
+        }
+
+        //const stats = Stats()
+        //document.body.appendChild(stats.dom)
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            render();
+            //stats.update()
+        }
+
+        const startTime = Date.now();
+        function render() {
+            const elapsedTime = (Date.now() - startTime);
+            const distance = 100 - elapsedTime/20;
+            const timer = Date.now() * 0.0005;
+            camera.position.x = Math.cos(timer) * 4;
+            camera.position.z = Math.sin(timer) * 4;
+            camera.position.y = Math.cos(timer) * 4;
+            if (distance > 0) {
+                camera.position.z += distance;
+            }
+            renderer.render(scene, camera);
+        }
+
+        const backgroundImages = [
+            './bg01.jpg',
+            './bg02.jpg'
+        ];
+
+        let currentBackgroundIndex = 0;
+
+        function changeBackground() {
+            currentBackgroundIndex = (currentBackgroundIndex + 1) % backgroundImages.length;
+            loader2.load(backgroundImages[currentBackgroundIndex], function (texture) {
+                scene.background = texture;
+            });
+        }
+
+        //Change the background every 5 seconds
+        setInterval(changeBackground, 5000);
+
+        animate();
+    </script>
+</body>
+
+</html>
